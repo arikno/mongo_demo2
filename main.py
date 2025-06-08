@@ -88,14 +88,27 @@ async def get_person(first_name: str = None, email: str = None):
 @app.get("/autocomplete/person")
 async def autocomplete_person(query: str):
     try:
-        # Perform Atlas Search autocomplete aggregation
+        # Perform Atlas Search autocomplete aggregation with compound query
         pipeline = [
             {
                 "$search": {
                     "index": AUTOCOMPLETE_INDEX_NAME,
-                    "autocomplete": {
-                        "path": "first_name",
-                        "query": query
+                    "compound": {
+                        "should": [
+                            {
+                                "autocomplete": {
+                                    "query": query,
+                                    "path": "full_name_autocomplete"
+                                }
+                            },
+                            {
+                                "text": {
+                                    "query": query,
+                                    "path": "full_name_fuzzy",
+                                    "fuzzy": {"maxEdits": 2}
+                                }
+                            }
+                        ]
                     }
                 }
             },
@@ -104,12 +117,14 @@ async def autocomplete_person(query: str):
                     "_id": 0,
                     "first_name": 1,
                     "last_name": 1,
-                    "email": 1
+                    "email": 1,
+                    "full_name": 1,
+                    "score": { "$meta": "searchScore" }
                 }
             },
             {
                 "$sort": {
-                    "first_name": 1
+                    "score": -1
                 }
             }
         ]
