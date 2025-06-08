@@ -1,19 +1,32 @@
-# Person Search API
+# Full-Stack Money Transfer Application
 
-A FastAPI application that provides a search interface for person records stored in MongoDB Atlas.
+A full-stack application built with FastAPI backend and JavaScript frontend that enables user authentication, person search, and secure money transfers between users.
+
+## Features
+
+- User Authentication (Login/Logout)
+- Real-time Person Search with Autocomplete
+- Money Transfer System
+  - Send money to other users
+  - Approve incoming transfers
+  - View transfer history
+  - Real-time balance updates
+- MongoDB Transaction Support
+- Modern UI with Bootstrap
 
 ## Prerequisites
 
 - Python 3.x
 - MongoDB Atlas account
+- Modern web browser
 - pip (Python package installer)
 
 ## Setup
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/arikno/mongo_demo2.git
+cd mongo_demo2
 ```
 
 2. Install dependencies:
@@ -23,7 +36,7 @@ pip install -r requirements.txt
 
 3. Create a `.env` file in the root directory with the following content:
 ```env
-MONGO_CONNECTION_STRING="mongodb+srv://admin:admin@pstt.t5w1vbr.mongodb.net/?retryWrites=true&w=majority&appName=PSTT"
+MONGO_CONNECTION_STRING="your_mongodb_connection_string"
 MONGO_DB_NAME="search"
 MONGO_COLLECTION_NAME="person"
 MONGO_SEARCH_INDEX_NAME="personNamePhone"
@@ -32,144 +45,116 @@ MONGO_AUTOCOMPLETE_INDEX_NAME="personNamesAutocomplete"
 
 ## Running the Application
 
-Start the application using uvicorn:
+1. Start the backend server:
 ```bash
 uvicorn main:app --reload
 ```
-
 The API will be available at `http://127.0.0.1:8000`
+
+2. Start the frontend server:
+```bash
+cd frontend
+python3 -m http.server 8080
+```
+The web interface will be available at `http://localhost:8080`
 
 ## API Endpoints
 
-### Get Person by First Name
-- **URL**: `/person`
-- **Method**: `GET`
-- **Query Parameters**: 
-  - `first_name` (required): The first name to search for
-- **Success Response**:
-  - **Code**: 200
-  - **Content**: JSON object containing person details
-```json
-{
-    "_id": "string",
-    "first_name": "string",
-    "last_name": "string",
-    "phone": "string",
-    ...
-}
-```
-- **Error Response**:
-  - **Code**: 404
-  - **Content**: `{"detail": "Person not found"}`
+### Authentication
+- **POST** `/login`: Authenticate user with email and password
 
-### Autocomplete Person Names
-- **URL**: `/autocomplete/person`
-- **Method**: `GET`
-- **Query Parameters**: 
-  - `query` (required): The partial name to search for
-- **Success Response**:
-  - **Code**: 200
-  - **Content**: Array of person objects with matching names
-```json
-[
-    {
-        "first_name": "string",
-        "last_name": "string",
-        "email": "string"
-    },
-    ...
-]
-```
-- **Error Response**:
-  - **Code**: 404
-  - **Content**: `{"detail": "No matching names found"}`
-  - **Code**: 500
-  - **Content**: `{"detail": "Error message"}`
+### Person Search
+- **GET** `/person`: Get person by email
+- **GET** `/autocomplete/person`: Real-time name search with autocomplete
 
-### Update Person's Balance
-- **URL**: `/person/update-balance`
-- **Method**: `POST`
-- **Request Body**:
-```json
-{
-    "email": "string",
-    "balance": float
-}
-```
-- **Success Response**:
-  - **Code**: 200
-  - **Content**: `{"message": "Balance updated successfully"}`
-  or
-  - **Content**: `{"message": "Balance unchanged"}`
-- **Error Response**:
-  - **Code**: 400
-  - **Content**: `{"detail": "Balance cannot be negative"}`
-  - **Code**: 404
-  - **Content**: `{"detail": "Person not found"}`
-  - **Code**: 500
-  - **Content**: `{"detail": "Error message"}`
+### Money Transfers
+- **POST** `/transfer/create`: Create a new money transfer
+- **POST** `/transfer/approve`: Approve an incoming transfer
+- **GET** `/transfers/{email}`: Get transfer history for a user
 
-### Example Usage
+### Balance Management
+- **POST** `/person/update-balance`: Update user's balance
 
-Using curl:
-```bash
-curl "http://127.0.0.1:8000/person?first_name=MARK"
-curl "http://127.0.0.1:8000/autocomplete/person?query=MA"
-curl -X POST "http://127.0.0.1:8000/person/update-balance" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "mark.smith@example.com", "balance": 1000.50}'
-```
+## Frontend Features
 
-Using Python requests:
-```python
-import requests
+### Authentication
+- Login form with email/password
+- Welcome message showing user's full name
+- Automatic session management
 
-# Search for exact match
-response = requests.get("http://127.0.0.1:8000/person", params={"first_name": "MARK"})
-print(response.json())
+### Search Interface
+- Real-time search with autocomplete dropdown
+- Search by email functionality
+- Person details display
 
-# Autocomplete search
-response = requests.get("http://127.0.0.1:8000/autocomplete/person", params={"query": "MA"})
-print(response.json())
+### Transfer System
+- Send money to other users
+- View and approve incoming transfers
+- Transfer history with status indicators
+- Real-time balance updates
 
-# Update balance
-response = requests.post(
-    "http://127.0.0.1:8000/person/update-balance",
-    json={
-        "email": "mark.smith@example.com",
-        "balance": 1000.50
-    }
-)
-print(response.json())
-```
+## Security Features
 
-## Error Handling
+- MongoDB transactions for safe balance updates
+- Secure authentication system
+- SSL certificate verification for MongoDB connections
+- CORS protection
+- Environment variable configuration
 
-The API includes comprehensive error handling:
-- 404: When no person is found with the given first name
-- 500: For server-side errors (e.g., database connection issues)
+## Recent Updates
 
-## Development
+1. UI Improvements:
+   - Removed search button for smoother UX
+   - Enhanced welcome message with full name
+   - Search now works through dropdown selection
+   - Changed search to use email instead of first name
 
-The application uses FastAPI's automatic reload feature. Any changes to the code will trigger a server restart automatically when running with the `--reload` flag.
+2. Transfer System Enhancement:
+   - Added MongoDB transactions for balance updates
+   - Atomic operations for money transfers
+   - Rollback support on failure
+   - Improved transfer status tracking
 
 ## Dependencies
 
+### Backend
 - fastapi: Web framework
 - uvicorn: ASGI server
 - pymongo: MongoDB driver
 - python-dotenv: Environment variable management
 - certifi: SSL certificate verification
 
-## Security
+### Frontend
+- Bootstrap: UI framework
+- JavaScript (Vanilla)
+- HTML5/CSS3
 
-- The application uses SSL certificate verification for MongoDB connections
-- CORS is enabled for all origins (can be restricted in production)
-- Environment variables are used for sensitive configuration
+## Development
+
+The application uses FastAPI's automatic reload feature for the backend and a simple Python HTTP server for the frontend. Any changes to the backend code will trigger a server restart automatically when running with the `--reload` flag.
+
+## Error Handling
+
+- Comprehensive error handling for all API endpoints
+- Transaction rollback on failure
+- User-friendly error messages in UI
+- Detailed server-side logging
 
 ## Logging
 
-The application includes basic logging configuration:
-- Logs MongoDB connection issues
-- Logs API errors
-- Uses Python's built-in logging module 
+The application includes comprehensive logging:
+- API request/response logging
+- Authentication attempts
+- Transfer operations
+- MongoDB transaction status
+- Error tracking
+
+## Testing
+
+To test the application:
+1. Start both backend and frontend servers
+2. Login with test credentials (e.g., email: "wnu@z.gd", password: "pass123")
+3. Try searching for other users
+4. Attempt money transfers
+5. Login as recipient to approve transfers
+6. Check transfer history and balance updates 
